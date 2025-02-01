@@ -46,23 +46,96 @@ class PixelEditor {
     set onchange(listener: (state: PixelData["state"]) => void) {}
 
     /** Sets the drawing color. */
-    set color(color: RGB) {}
+    set color(color: RGB) {
+        this.#color = color;
+    }
 
     /**
      * Handles events on the canvas.
      * @param e Pointer event from the canvas element.
      */
-    handleEvent(e: PointerEvent) {}
+    handleEvent(e: PointerEvent) {
+        switch(e.type) {
+            /**
+             * triggered when user depresses the mouse or touches their finger to the screen
+             * setPointerCapture "captures" the pointer to figure out if the events are part of one continous drag
+             * We then fall through to the next case, in order to draw a pixel
+             */
+            // @ts-expect-error
+            case "pointerdown": {
+                this.#el.setPointerCapture(e.pointerId);
+            }
+            /**
+             * triggered when the pointer moves.
+             * Ignore if user isn't holding the mouse down (captured from above)
+             * Then, convert canvas pixels to artboard pixels and #paint to canvas
+             */
+            case "pointermove": {
+                if(!this.#el.hasPointerCapture(e.pointerId)) return;
+
+                const x = Math.floor((this.#artboard.w * e.offsetX) / this.#el.clientWidth);
+                const y = Math.floor((this.#artboard.h * e.offsetY) / this.#el.clientHeight);
+                this.#paint(x, y);
+                break;
+            }
+            /**
+             * triggered when user releases the mouse button or removes their finger from the screen
+             */
+            case "pointerup": {
+                this.#el.releasePointerCapture(e.pointerId);
+            }
+        }
+    }
 
     /**
      * Sets pixel under the mouse cursor with the current color.
      * @param x X coordinate of the destination pixel.
      * @param y Y coordinate of the destination pixel.
      */
-    #paint(x: number, y: number) {}
+    #paint(x: number, y: number) {
+        if (x < 0 || this.#artboard.w <= x) return;
+        if (y < 0 || this.#artboard.h <= y) return;
 
-    /** Draws each pixel on the canvas. */
-    async #draw() {}
+        this.#data.set(x, y, this.#color);
+        this.#draw();
+    }
+
+    /** Draws each pixel on the canvas.
+     * Allocate a buffer, then write data there
+     * */
+    async #draw() {
+        // Number of channels per pixel
+        const chans = 4;
+
+        /**
+         * A buffer to how raw pixel data
+         * Each pixel corresponds to four bytes in buffer
+         * Full size is # pixels * # channels per pixel. Matrix.
+         */
+        const buffer = new Uint8ClampedArray(this.#artboard.w * this.#artboard.h * chans);
+
+        // Full number of bytes in buffer in a row (horizontal)
+        const rowsize = this.#artboard.w * chans;
+
+        for (let row = 0; row < this.#artboard.h; row++) {
+            const offsetY = row * rowsize;
+
+            for (let col = 0; col < this.#artboard.w; col++) {
+                const offsetX = col * chans;
+                const offset = offsetY + offsetX;
+
+                const [r,g,b] = this.#data.get(col, row);
+                buffer[offset] = r;
+                buffer[offset + 1] = g;
+                buffer[offset + 2] = b;
+                buffer[offset + 3] = 255;
+            }
+        }
+
+        const data = new ImageData(buffer, this.#artboard.w, this.#artboard.h);
+        const bitmap = await createImageBitmap(data);
+        this.#ctx.drawImage(bitmap, 0, 0, this.#el.clientWidth, this.#el.clientHeight);
+    }
 
     /** Notify all listeners that the state has changed. */
     #notify() {}
