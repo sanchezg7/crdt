@@ -1,4 +1,5 @@
 import PixelData from "./PixelData.ts";
+import {RGB} from "../types/types.ts";
 
 class PixelEditor {
     /** The underlying <canvas> element */
@@ -24,7 +25,7 @@ class PixelEditor {
 
         // get the 2D rendering context
         const ctx = el.getContext("2d");
-        if(!ctx) throw new Error("Couldn't get rendering context");
+        if (!ctx) throw new Error("Couldn't get rendering context");
         this.#ctx = ctx;
 
         // store the artboard size
@@ -45,7 +46,8 @@ class PixelEditor {
     /**
      * Appends a listener to be called when the state changes.
      * @param listener */
-    set onchange(listener: (state: PixelData["state"]) => void) {}
+    set onchange(listener: (state: PixelData["state"]) => void) {
+    }
 
     /** Sets the drawing color. */
     set color(color: RGB) {
@@ -57,7 +59,7 @@ class PixelEditor {
      * @param e Pointer event from the canvas element.
      */
     handleEvent(e: PointerEvent) {
-        switch(e.type) {
+        switch (e.type) {
             /**
              * triggered when user depresses the mouse or touches their finger to the screen
              * setPointerCapture "captures" the pointer to figure out if the events are part of one continous drag
@@ -66,6 +68,7 @@ class PixelEditor {
             // @ts-expect-error
             case "pointerdown": {
                 this.#el.setPointerCapture(e.pointerId);
+                // fallthrough
             }
             /**
              * triggered when the pointer moves.
@@ -73,7 +76,7 @@ class PixelEditor {
              * Then, convert canvas pixels to artboard pixels and #paint to canvas
              */
             case "pointermove": {
-                if(!this.#el.hasPointerCapture(e.pointerId)) return;
+                if (!this.#el.hasPointerCapture(e.pointerId)) return;
 
                 const x = Math.floor((this.#artboard.w * e.offsetX) / this.#el.clientWidth);
                 const y = Math.floor((this.#artboard.h * e.offsetY) / this.#el.clientHeight);
@@ -126,7 +129,7 @@ class PixelEditor {
                 const offsetX = col * chans;
                 const offset = offsetY + offsetX;
 
-                const [r,g,b] = this.#data.get(col, row);
+                const [r, g, b] = this.#data.get(col, row);
                 buffer[offset] = r;
                 buffer[offset + 1] = g;
                 buffer[offset + 2] = b;
@@ -140,12 +143,14 @@ class PixelEditor {
     }
 
     /** Notify all listeners that the state has changed. */
-    #notify() {}
+    #notify() {
+    }
 
     /**
      * Merge remote state with the current state and redraw the canvas.
      * @param state State to merge into the current state. */
-    receive(state: PixelData["state"]) {}
+    receive(state: PixelData["state"]) {
+    }
 }
 
 export default PixelEditor;

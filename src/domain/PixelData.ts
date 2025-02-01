@@ -1,4 +1,5 @@
 import LWWMap from "./LWWMap.ts";
+import {RGB} from "../types/types.ts";
 
 class PixelData {
     readonly id: string;
