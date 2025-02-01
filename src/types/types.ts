@@ -5,3 +5,5 @@ type Value<T> = {
 type State<T> = {
     [key: string]: LWWRegister<T | null>["state"];
 };
+
+type RGB = [red: number, green: number, blue: number];
