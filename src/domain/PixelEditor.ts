@@ -17,6 +17,9 @@ class PixelEditor {
     /** The selected color */
     #color: RGB = [0, 0, 0];
 
+    // prev position of the cursor
+    #prev: [x: number, y: number] | undefined;
+
     /** Listeners for change events */
     #listeners: Array<(state: PixelData["state"]) => void> = [];
 
@@ -81,6 +84,7 @@ class PixelEditor {
                 const x = Math.floor((this.#artboard.w * e.offsetX) / this.#el.clientWidth);
                 const y = Math.floor((this.#artboard.h * e.offsetY) / this.#el.clientHeight);
                 this.#paint(x, y);
+                this.#prev = [x, y];
                 break;
             }
             /**
@@ -88,6 +92,8 @@ class PixelEditor {
              */
             case "pointerup": {
                 this.#el.releasePointerCapture(e.pointerId);
+                this.#prev = undefined;
+                break;
             }
         }
     }
@@ -102,6 +108,23 @@ class PixelEditor {
         if (y < 0 || this.#artboard.h <= y) return;
 
         this.#data.set(x, y, this.#color);
+
+        // Digital Differential Analyzer (DDA) Algorithm https://www.tutorialspoint.com/computer_graphics/line_generation_algorithm.htm
+        let [x0, y0] = this.#prev || [x, y];
+
+        const dx = x - x0, dy = y - y0;
+
+        const steps = Math.max(Math.abs(dx), Math.abs(dy));
+        const xinc = dx / steps, yinc = dy / steps;
+
+        for (let i = 0; i <= steps; i++) {
+            x0 += xinc;
+            y0 += yinc;
+            const x1 = Math.round(x0);
+            const y1 = Math.round(y0);
+            this.#data.set(x1, y1, this.#color);
+        }
+
         this.#draw();
     }
 
