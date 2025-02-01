@@ -30,3 +30,5 @@ class LWWRegister<T> {
         this.state = state;
     }
 }
+
+export default LWWRegister;

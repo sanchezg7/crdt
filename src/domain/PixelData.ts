@@ -1,9 +1,11 @@
+import LWWMap from "./LWWMap.ts";
+
 class PixelData {
     readonly id: string;
     #data: LWWMap<RGB>;
 
-    constructor(id: string) {
-        this.id = id;
+    constructor(/*id: string*/) {
+        this.id = 'something';
         this.#data = new LWWMap(this.id, {});
     }
 
@@ -46,3 +48,5 @@ class PixelData {
         this.#data.merge(state);
     }
 }
+
+export default PixelData;

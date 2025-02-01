@@ -1,3 +1,5 @@
+import LWWRegister from "./LWWRegister.ts";
+
 class LWWMap<T> {
     readonly id: string;
     #data = new Map<string, LWWRegister<T | null>>();
@@ -68,3 +70,5 @@ class LWWMap<T> {
         }
     }
 }
+
+export default LWWMap;

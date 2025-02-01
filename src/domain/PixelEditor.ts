@@ -1,3 +1,5 @@
+import PixelData from "./PixelData.ts";
+
 class PixelEditor {
     /** The underlying <canvas> element */
     #el: HTMLCanvasElement;
@@ -128,7 +130,7 @@ class PixelEditor {
                 buffer[offset] = r;
                 buffer[offset + 1] = g;
                 buffer[offset + 2] = b;
-                buffer[offset + 3] = 255;
+                buffer[offset + 3] = 255; // alpha channel
             }
         }
 
@@ -145,3 +147,5 @@ class PixelEditor {
      * @param state State to merge into the current state. */
     receive(state: PixelData["state"]) {}
 }
+
+export default PixelEditor;
