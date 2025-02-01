@@ -50,6 +50,7 @@ class PixelEditor {
      * Appends a listener to be called when the state changes.
      * @param listener */
     set onchange(listener: (state: PixelData["state"]) => void) {
+        this.#listeners.push(listener);
     }
 
     /** Sets the drawing color. */
@@ -126,6 +127,7 @@ class PixelEditor {
         }
 
         this.#draw();
+        this.#notify();
     }
 
     /** Draws each pixel on the canvas.
@@ -167,12 +169,16 @@ class PixelEditor {
 
     /** Notify all listeners that the state has changed. */
     #notify() {
+        const state = this.#data.state;
+        for (const listener of this.#listeners) listener(state);
     }
 
     /**
      * Merge remote state with the current state and redraw the canvas.
      * @param state State to merge into the current state. */
     receive(state: PixelData["state"]) {
+        this.#data.merge(state);
+        this.#draw();
     }
 }
 
