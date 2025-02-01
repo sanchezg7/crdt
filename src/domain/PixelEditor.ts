@@ -23,6 +23,22 @@ class PixelEditor {
     /** Listeners for change events */
     #listeners: Array<(state: PixelData["state"]) => void> = [];
 
+    /**
+     * Avoid adding pixels already there for subsequent oncapture calls and keep timestamps from increasing too high unecessarily
+     * The set of pixel keys that have been painted during the current drag operation
+     *
+     * */
+    #painted = new Set<string>();
+
+    #checkPainted(x: number, y: number) {
+        const key = PixelData.key(x, y);
+
+        const painted = this.#painted.has(key);
+        this.#painted.add(key);
+
+        return painted;
+    }
+
     constructor(el: HTMLCanvasElement, artboard: { w: number; h: number }) {
         this.#el = el;
 
@@ -94,6 +110,7 @@ class PixelEditor {
             case "pointerup": {
                 this.#el.releasePointerCapture(e.pointerId);
                 this.#prev = undefined;
+                this.#painted.clear();
                 break;
             }
         }
@@ -108,7 +125,9 @@ class PixelEditor {
         if (x < 0 || this.#artboard.w <= x) return;
         if (y < 0 || this.#artboard.h <= y) return;
 
-        this.#data.set(x, y, this.#color);
+        if(!this.#checkPainted(x, y)){
+            this.#data.set(x, y, this.#color);
+        }
 
         // Digital Differential Analyzer (DDA) Algorithm https://www.tutorialspoint.com/computer_graphics/line_generation_algorithm.htm
         let [x0, y0] = this.#prev || [x, y];
@@ -123,7 +142,9 @@ class PixelEditor {
             y0 += yinc;
             const x1 = Math.round(x0);
             const y1 = Math.round(y0);
-            this.#data.set(x1, y1, this.#color);
+            if(!this.#checkPainted(x1, y1)){
+                this.#data.set(x1, y1, this.#color);
+            }
         }
 
         this.#draw();
