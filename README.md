@@ -8,3 +8,4 @@ Optimization techniques
 
 https://automerge.org/
 https://crdt.tech/implementations
+[Guide doc](https://jakelazaroff.com/words/making-crdts-98-percent-more-efficient/)
